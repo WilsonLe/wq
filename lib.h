@@ -18,7 +18,7 @@ typedef struct queue_d
 	int **bottomLeft;
 } queue_d;
 
-typedef struct queue
+typedef struct queue_attr
 {
 	queue_d ***buffer;
 	int *use_ptr;
@@ -27,11 +27,11 @@ typedef struct queue
 	int *count;
 	pthread_cond_t *fill;
 	pthread_cond_t *empty;
-} queue;
+} queue_attr;
 
 typedef struct worker_t_input
 {
-	queue *queue;
+	queue_attr *queue;
 	int threadId;
 } worker_t_input;
 
@@ -41,8 +41,8 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count);
 
 void printMatrix(int **mat, int n);
 
-void consume(queue *queue, int threadId);
+void consume(queue_attr *queue, int threadId);
 
-void produce(queue *queue, queue_d *work);
+void produce(queue_attr *queue, queue_d *work);
 
 #endif

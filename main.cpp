@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	pthread_mutex_t mutex;
 	pthread_mutex_init(&mutex, NULL);
 
-	queue queue;
+	queue_attr queue;
 	queue.buffer = (queue_d ***)&buffer;
 	queue.use_ptr = &use_ptr;
 	queue.fill_ptr = &fill_ptr;

@@ -87,7 +87,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 	free(outputBytes);
 }
 
-void consume(queue *queue, int threadId)
+void consume(queue_attr *queue, int threadId)
 {
 	while (true)
 	{
@@ -120,7 +120,7 @@ void consume(queue *queue, int threadId)
 	}
 }
 
-void produce(queue *queue, queue_d *data)
+void produce(queue_attr *queue, queue_d *data)
 {
 	pthread_mutex_lock(queue->mutex);
 	while (*(queue->count) == WQ_MAX)
