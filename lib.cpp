@@ -13,14 +13,14 @@
 void put(queue_d ***buffer, int *fill_ptr, int *count, queue_d *data)
 {
 	(*buffer)[*fill_ptr] = data;
-	*fill_ptr = (*fill_ptr + 1) % MAX;
+	*fill_ptr = (*fill_ptr + 1) % WQ_MAX;
 	(*count)++;
 }
 
 queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 {
 	queue_d *tmp = (*buffer)[*use_ptr];
-	*use_ptr = (*use_ptr + 1) % MAX;
+	*use_ptr = (*use_ptr + 1) % WQ_MAX;
 	(*count)--;
 	return tmp;
 }
@@ -42,7 +42,10 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 		close(link[0]);
 		close(link[1]);
 		std::stringstream ss;
-		ss << n << "\n";
+		ss << n << "$'\n'";
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+				ss << in_topRightMatrix[i][j] << "$'\n'";
 		execl("/usr/bin/ssh", "ssh", redId, "~/CS401/wq/red_worker", "<<<", ss.str().c_str(), (char *)0);
 		exit(0);
 	}
@@ -120,7 +123,7 @@ void consume(queue *queue, int threadId)
 void produce(queue *queue, queue_d *data)
 {
 	pthread_mutex_lock(queue->mutex);
-	while (*(queue->count) == MAX)
+	while (*(queue->count) == WQ_MAX)
 		pthread_cond_wait(queue->empty, queue->mutex);
 	put(queue->buffer, queue->fill_ptr, queue->count, data);
 	pthread_cond_signal(queue->fill);

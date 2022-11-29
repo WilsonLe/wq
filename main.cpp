@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 	int fill_ptr = 0;
 	int use_ptr = 0;
 	int count = 0;
-	void **buffer = (void **)malloc(sizeof(void *) * MAX);
+	void **buffer = (void **)malloc(sizeof(void *) * WQ_MAX);
 	pthread_cond_t empty, fill;
 	pthread_cond_init(&empty, NULL);
 	pthread_cond_init(&fill, NULL);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 		free(in.data[i]);
 	free(in.data);
 
-	for (int i = 0; i < MAX; i++)
+	for (int i = 0; i < WQ_MAX; i++)
 		free(buffer[i]);
 	free(buffer);
 

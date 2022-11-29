@@ -1,6 +1,7 @@
 #ifndef LIB
 #define LIB
-#define MAX 256
+#define WQ_MAX 256
+#define MAT_MAX 65536
 
 typedef struct input
 {
