@@ -38,7 +38,6 @@ void invoke()
 	}
 	else if (pid == 0)
 	{
-		printf("child process, pid = %u\n", getpid());
 		dup2(link[1], STDOUT_FILENO);
 		close(link[0]);
 		close(link[1]);
