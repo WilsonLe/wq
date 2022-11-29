@@ -25,10 +25,10 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 	return tmp;
 }
 
-void invoke()
+void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMatrix, int ***out_topRightMatrix, int ***out_bottomLeftMatrix)
 {
 	int link[2];
-	char foo[4096];
+	char *outputBytes = (char *)malloc(sizeof(int) * n * n * 2);
 	pipe(link);
 	int pid = fork();
 	if (pid == -1)
@@ -41,21 +41,21 @@ void invoke()
 		dup2(link[1], STDOUT_FILENO);
 		close(link[0]);
 		close(link[1]);
-		execl("/usr/bin/ssh", "ssh", "lab", "ls", (char *)0);
+		std::stringstream ss;
+		ss << n << "\n";
+		execl("/usr/bin/ssh", "ssh", redId, "~/CS401/wq/red_worker", "<<<", ss.str().c_str(), (char *)0);
 		exit(0);
 	}
 	else
 	{
-		printf("parent process, pid = %u\n", getpid());
 		close(link[1]);
 		int status;
 		if (waitpid(pid, &status, 0) > 0)
 		{
 			if (WIFEXITED(status) && !WEXITSTATUS(status))
 			{
-				printf("program execution successful\n");
-				int nbytes = read(link[0], foo, sizeof(foo));
-				printf("Output: (%.*s)\n", nbytes, foo);
+				int nbytes = read(link[0], outputBytes, sizeof(outputBytes));
+				printf("%.*s", nbytes, outputBytes);
 			}
 			else if (WIFEXITED(status) && WEXITSTATUS(status))
 			{
@@ -80,9 +80,11 @@ void invoke()
 			printf("waitpid() failed\n");
 		}
 	}
+
+	free(outputBytes);
 }
 
-void consume(queue *queue)
+void consume(queue *queue, int threadId)
 {
 	while (true)
 	{
@@ -94,7 +96,24 @@ void consume(queue *queue)
 		pthread_mutex_unlock(queue->mutex);
 
 		// worker thread do stuff
-		invoke();
+		int **out_topRight = (int **)malloc(sizeof(int *) * data->n);
+		for (int i = 0; i < data->n; i++)
+			out_topRight[i] = (int *)malloc(sizeof(int) * data->n);
+		int **out_bottomLeft = (int **)malloc(sizeof(int *) * data->n);
+		for (int i = 0; i < data->n; i++)
+			out_bottomLeft[i] = (int *)malloc(sizeof(int) * data->n);
+
+		char _[4] = "lab";
+		char *redId = strcat(_, std::to_string(threadId).c_str());
+		invoke(redId, data->n, &(data->topRight), &(data->bottomLeft), &out_topRight, &out_bottomLeft);
+
+		// free output
+		for (int i = 0; i < data->n; i++)
+			free(out_bottomLeft[i]);
+		free(out_bottomLeft);
+		for (int i = 0; i < data->n; i++)
+			free(out_topRight[i]);
+		free(out_topRight);
 	}
 }
 
@@ -126,7 +145,7 @@ input readInput()
 	{
 		std::string line;
 		std::getline(file, line);
-		in.n = stoi(line);
+		in.n = std::stoi(line);
 		in.data = (int **)malloc(sizeof(int *) * in.n);
 		for (int i = 0; i < in.n; i++)
 			in.data[i] = (int *)malloc(sizeof(int) * in.n);
@@ -140,7 +159,7 @@ input readInput()
 			{
 				std::string substr;
 				std::getline(ss, substr, ',');
-				in.data[row][col] = stoi(substr);
+				in.data[row][col] = std::stoi(substr);
 				col++;
 			}
 			row++;

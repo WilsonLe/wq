@@ -28,13 +28,19 @@ typedef struct queue
 	pthread_cond_t *empty;
 } queue;
 
+typedef struct worker_t_input
+{
+	queue *queue;
+	int threadId;
+} worker_t_input;
+
 void put(queue_d ***buffer, int *fill_ptr, int *count, queue_d *data);
 
 queue_d *get(queue_d ***buffer, int *use_ptr, int *count);
 
 void printMatrix(int **mat, int n);
 
-void consume(queue *queue);
+void consume(queue *queue, int threadId);
 
 void produce(queue *queue, queue_d *work);
 

@@ -4,7 +4,9 @@
 
 void *createWorkerThread(void *input)
 {
-	consume((queue *)input);
+	worker_t_input *_input = (worker_t_input *)input;
+	consume(_input->queue, _input->threadId);
+	free(input);
 	return NULL;
 }
 
@@ -34,7 +36,12 @@ int main(int argc, char *argv[])
 	int numThreads = 4;
 	pthread_t tid[numThreads];
 	for (int i = 0; i < numThreads; i++)
-		pthread_create(&tid[i], NULL, createWorkerThread, &queue);
+	{
+		worker_t_input *input = (worker_t_input *)malloc(sizeof(worker_t_input *));
+		input->queue = &queue;
+		input->threadId = i + 2; // start from red2 -> red5
+		pthread_create(&tid[i], NULL, createWorkerThread, input);
+	}
 
 	// read input
 	input in = readInput();
