@@ -38,7 +38,7 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMatrix, int ***out_topRightMatrix, int ***out_bottomLeftMatrix)
 {
 	int link[2];
-	char *outputBytes = (char *)malloc(sizeof(int) * n * n * 2);
+	char *outputBytes = (char *)malloc((sizeof(int) + sizeof(char)) * (n * n * 2));
 	pipe(link);
 	int pid = fork();
 	if (pid == -1)
@@ -52,13 +52,21 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 		close(link[0]);
 		close(link[1]);
 		// setup data to invoke red_worker
-		// printMatrix(*(in_topRightMatrix), n);
+		printMatrix(*(in_topRightMatrix), n);
 		std::stringstream ss;
 		ss << n << "$'\n'";
-		// for (int i = 0; i < n; i++)
-		// 	for (int j = 0; j < n; j++)
-		// 		ss << std::to_string(*(in_topRightMatrix[i][j])) << "$'\n'";
-		// printf("s: %s\n", ss.str().c_str());
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < n; j++)
+				ss << std::to_string((*(in_topRightMatrix))[i][j]) << ",";
+			ss << "$'\n'";
+		}
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < n; j++)
+				ss << std::to_string((*(in_bottomLeftMatrix))[i][j]) << ",";
+			ss << "$'\n'";
+		}
 		// invoke
 		execl("/usr/bin/ssh", "ssh", redId, "~/CS401/wq/red_worker", "<<<", ss.str().c_str(), (char *)0);
 		exit(0);

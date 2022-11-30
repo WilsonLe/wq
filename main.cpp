@@ -47,8 +47,7 @@ int main(int argc, char *argv[])
 	input in = readInput();
 
 	// divide up the work
-	int blockSize = 1;
-	printf("in.n / blockSize: %d\n", in.n / blockSize);
+	int blockSize = 4;
 	int ****blocks = (int ****)malloc(sizeof(int ***) * in.n / blockSize);
 	for (int i = 0; i < in.n / blockSize; i++)
 	{
@@ -78,16 +77,14 @@ int main(int argc, char *argv[])
 			{
 				int **topRightBlock = blocks[i][j];
 				int **bottomLeftBlock = blocks[j][i];
-				printf("------------------\n");
-				printMatrix(topRightBlock, blockSize);
-				printf("--------\n");
-				printMatrix(bottomLeftBlock, blockSize);
-				printf("------------------\n");
-				// queue_d *data = (queue_d *)malloc(sizeof(queue_d));
-				// data->n = blockSize;
-				// data->topRight = topRightBlock;
-				// data->bottomLeft = bottomLeftBlock;
-				// produce(&queue, data);
+				queue_d *data = (queue_d *)malloc(sizeof(queue_d));
+				data->n = blockSize;
+				data->topRight = topRightBlock;
+				data->bottomLeft = bottomLeftBlock;
+				// printf("producing:\n");
+				// printMatrix(data->topRight, data->n);
+				// printMatrix(data->bottomLeft, data->n);
+				produce(&queue, data);
 			}
 		}
 

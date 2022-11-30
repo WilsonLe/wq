@@ -8,7 +8,10 @@ void parseMatrixSize(int *n)
 {
 	char str[MAT_MAX];
 	fgets(str, MAT_MAX, stdin);
-	*n = std::stoi(str);
+	std::string substr;
+	std::stringstream ss(str);
+	std::getline(ss, substr, '\n');
+	*n = std::stoi(substr);
 }
 
 void parseMatrix(int n, int ***mat)
@@ -16,17 +19,14 @@ void parseMatrix(int n, int ***mat)
 
 	for (int row = 0; row < n; row++)
 	{
+		char str[MAT_MAX];
+		fgets(str, MAT_MAX, stdin);
+		std::stringstream ss(str);
 		for (int col = 0; col < n; col++)
 		{
 			std::string substr;
-			char str[MAT_MAX];
-			fgets(str, MAT_MAX, stdin);
-			std::stringstream ss(str);
-			while (ss.good())
-			{
-				std::getline(ss, substr, ',');
-				(*(mat))[row][col] = std::stoi(substr);
-			}
+			std::getline(ss, substr, ',');
+			(*(mat))[row][col] = std::stoi(substr);
 		}
 	}
 }
@@ -35,11 +35,16 @@ int main()
 {
 	int n;
 	parseMatrixSize(&n);
-	printf("n: %d\n", n);
-	int **mat = (int **)malloc(sizeof(int *) * n);
+	int **topRightMatrix = (int **)malloc(sizeof(int *) * n);
 	for (int i = 0; i < n; i++)
-		mat[i] = (int *)malloc(sizeof(int) * n);
-	parseMatrix(n, &mat);
-	// printMatrix(mat, n);
+		topRightMatrix[i] = (int *)malloc(sizeof(int) * n);
+	parseMatrix(n, &topRightMatrix);
+	int **bottomLeftMatrix = (int **)malloc(sizeof(int *) * n);
+	for (int i = 0; i < n; i++)
+		bottomLeftMatrix[i] = (int *)malloc(sizeof(int) * n);
+	parseMatrix(n, &bottomLeftMatrix);
+	printf("%d\n", n);
+	printMatrix(topRightMatrix, n);
+	printMatrix(bottomLeftMatrix, n);
 	return 0;
 }
