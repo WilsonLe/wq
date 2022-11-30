@@ -15,7 +15,7 @@ void printMatrix(int **mat, int n)
 	for (int i = 0; i < n; i++)
 	{
 		for (int j = 0; j < n; j++)
-			printf("%d ", mat[i][j]);
+			printf("%d,", mat[i][j]);
 		printf("\n");
 	}
 }
@@ -52,7 +52,6 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 		close(link[0]);
 		close(link[1]);
 		// setup data to invoke red_worker
-		printMatrix(*(in_topRightMatrix), n);
 		std::stringstream ss;
 		ss << n << "$'\n'";
 		for (int i = 0; i < n; i++)
@@ -67,6 +66,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 				ss << std::to_string((*(in_bottomLeftMatrix))[i][j]) << ",";
 			ss << "$'\n'";
 		}
+		// printf("s: %s\n", ss.str().c_str());
 		// invoke
 		execl("/usr/bin/ssh", "ssh", redId, "~/CS401/wq/red_worker", "<<<", ss.str().c_str(), (char *)0);
 		exit(0);
@@ -80,7 +80,25 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 			if (WIFEXITED(status) && !WEXITSTATUS(status))
 			{
 				int nbytes = read(link[0], outputBytes, sizeof(outputBytes));
-				printf("%.*s", nbytes, outputBytes);
+				std::stringstream ss(outputBytes);
+				std::string substr;
+				std::getline(ss, substr, '\n');
+				for (int row = 0; row < n; row++)
+				{
+					for (int col = 0; col < n; col++)
+					{
+						std::getline(ss, substr, ',');
+						(*(out_topRightMatrix))[row][col] = std::stoi(substr);
+					}
+				}
+				for (int row = 0; row < n; row++)
+				{
+					for (int col = 0; col < n; col++)
+					{
+						std::getline(ss, substr, ',');
+						(*(out_bottomLeftMatrix))[row][col] = std::stoi(substr);
+					}
+				}
 			}
 			else if (WIFEXITED(status) && WEXITSTATUS(status))
 			{
@@ -131,6 +149,8 @@ void consume(queue_attr *queue, int threadId)
 		char _[4] = "lab";
 		char *redId = strcat(_, std::to_string(threadId).c_str());
 		invoke(redId, data->n, &(data->topRight), &(data->bottomLeft), &out_topRight, &out_bottomLeft);
+		printMatrix(out_bottomLeft, data->n);
+		printMatrix(out_topRight, data->n);
 
 		// free output
 		for (int i = 0; i < data->n; i++)
