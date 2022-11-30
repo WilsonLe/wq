@@ -16,6 +16,7 @@ void parseMatrixSize(int *n)
 
 void parseMatrix(int n, int ***mat)
 {
+
 	for (int row = 0; row < n; row++)
 	{
 		char str[MAT_MAX];
@@ -42,7 +43,15 @@ int main()
 	for (int i = 0; i < n; i++)
 		bottomLeftMatrix[i] = (int *)malloc(sizeof(int) * n);
 	parseMatrix(n, &bottomLeftMatrix);
-	printf("%d\n", n);
+
+	// transpose
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+		{
+			int temp = topRightMatrix[i][j];
+			topRightMatrix[i][j] = bottomLeftMatrix[j][i];
+			bottomLeftMatrix[j][i] = temp;
+		}
 	printMatrix(topRightMatrix, n);
 	printMatrix(bottomLeftMatrix, n);
 	return 0;

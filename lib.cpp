@@ -89,7 +89,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 					for (int col = 0; col < n; col++)
 					{
 						std::getline(ss, substr, ',');
-						(*(out_topRightMatrix))[row][col] = std::stoi(substr);
+						(*out_topRightMatrix)[row][col] = std::stoi(substr);
 					}
 					std::getline(ss, substr, '\n');
 				}
@@ -98,7 +98,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 					for (int col = 0; col < n; col++)
 					{
 						std::getline(ss, substr, ',');
-						(*(out_bottomLeftMatrix))[row][col] = std::stoi(substr);
+						(*out_bottomLeftMatrix)[row][col] = std::stoi(substr);
 					}
 					std::getline(ss, substr, '\n');
 				}
@@ -150,8 +150,8 @@ void consume(queue_attr *queue, int threadId)
 		char _[4] = "lab";
 		char *redId = strcat(_, std::to_string(threadId).c_str());
 		invoke(redId, data->n, &(data->topRight), &(data->bottomLeft), &out_topRight, &out_bottomLeft);
-		printMatrix(out_bottomLeft, data->n);
 		printMatrix(out_topRight, data->n);
+		printMatrix(out_bottomLeft, data->n);
 
 		// free output
 		for (int i = 0; i < data->n; i++)
