@@ -38,7 +38,9 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMatrix, int ***out_topRightMatrix, int ***out_bottomLeftMatrix)
 {
 	int link[2];
-	char *outputBytes = (char *)malloc((sizeof(int) + sizeof(char)) * (n * n * 2));
+	int outputSize = sizeof(char) + sizeof('\n') + (sizeof(char) * 2 * n + sizeof('\n')) * n * 2;
+	char outputBytes[outputSize];
+	memset(outputBytes, 0, outputSize);
 	pipe(link);
 	int pid = fork();
 	if (pid == -1)
@@ -79,7 +81,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 		{
 			if (WIFEXITED(status) && !WEXITSTATUS(status))
 			{
-				int nbytes = read(link[0], outputBytes, sizeof(outputBytes));
+				read(link[0], outputBytes, sizeof(outputBytes));
 				std::stringstream ss(outputBytes);
 				std::string substr;
 				std::getline(ss, substr, '\n');
@@ -123,8 +125,6 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 			printf("waitpid() failed\n");
 		}
 	}
-
-	free(outputBytes);
 }
 
 void consume(queue_attr *queue, int threadId)
