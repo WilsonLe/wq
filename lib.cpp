@@ -2,7 +2,7 @@
 #include <pthread.h>
 #include <sstream>
 #include <fstream>
-#include <string>
+#include <string.h>
 #include "lib.h"
 #include <assert.h>
 #include <stdlib.h>
