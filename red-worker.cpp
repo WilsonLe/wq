@@ -16,7 +16,6 @@ void parseMatrixSize(int *n)
 
 void parseMatrix(int n, int ***mat)
 {
-
 	for (int row = 0; row < n; row++)
 	{
 		char str[MAT_MAX];

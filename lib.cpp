@@ -65,7 +65,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 		for (int i = 0; i < n; i++)
 		{
 			for (int j = 0; j < n; j++)
-				ss << std::to_string((*(in_bottomLeftMatrix))[i][j]) << ",";
+				ss << std::to_string((*in_bottomLeftMatrix)[i][j]) << ",";
 			ss << "$'\n'";
 		}
 		// printf("s: %s\n", ss.str().c_str());
@@ -84,7 +84,6 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 				read(link[0], outputBytes, sizeof(outputBytes));
 				std::stringstream ss(outputBytes);
 				std::string substr;
-				std::getline(ss, substr, '\n');
 				for (int row = 0; row < n; row++)
 				{
 					for (int col = 0; col < n; col++)
@@ -92,6 +91,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 						std::getline(ss, substr, ',');
 						(*(out_topRightMatrix))[row][col] = std::stoi(substr);
 					}
+					std::getline(ss, substr, '\n');
 				}
 				for (int row = 0; row < n; row++)
 				{
@@ -100,6 +100,7 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 						std::getline(ss, substr, ',');
 						(*(out_bottomLeftMatrix))[row][col] = std::stoi(substr);
 					}
+					std::getline(ss, substr, '\n');
 				}
 			}
 			else if (WIFEXITED(status) && WEXITSTATUS(status))
@@ -185,19 +186,16 @@ input readInput()
 		for (int i = 0; i < in.n; i++)
 			in.data[i] = (int *)malloc(sizeof(int) * in.n);
 
-		int row = 0;
-		while (std::getline(file, line))
+		for (int row = 0; row < in.n; row++)
 		{
+			std::getline(file, line);
 			std::stringstream ss(line);
-			int col = 0;
-			while (ss.good())
+			for (int col = 0; col < in.n; col++)
 			{
 				std::string substr;
 				std::getline(ss, substr, ',');
 				in.data[row][col] = std::stoi(substr);
-				col++;
 			}
-			row++;
 		}
 		file.close();
 	}
