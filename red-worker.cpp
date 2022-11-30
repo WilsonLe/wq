@@ -40,6 +40,6 @@ int main()
 	for (int i = 0; i < n; i++)
 		mat[i] = (int *)malloc(sizeof(int) * n);
 	parseMatrix(n, &mat);
-	printMatrix(mat, n);
+	// printMatrix(mat, n);
 	return 0;
 }

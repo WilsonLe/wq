@@ -10,6 +10,16 @@
 #include <dirent.h>
 #include <sys/wait.h>
 
+void printMatrix(int **mat, int n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+			printf("%d ", mat[i][j]);
+		printf("\n");
+	}
+}
+
 void put(queue_d ***buffer, int *fill_ptr, int *count, queue_d *data)
 {
 	(*buffer)[*fill_ptr] = data;
@@ -41,11 +51,15 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 		dup2(link[1], STDOUT_FILENO);
 		close(link[0]);
 		close(link[1]);
+		// setup data to invoke red_worker
+		// printMatrix(*(in_topRightMatrix), n);
 		std::stringstream ss;
 		ss << n << "$'\n'";
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
-				ss << in_topRightMatrix[i][j] << "$'\n'";
+		// for (int i = 0; i < n; i++)
+		// 	for (int j = 0; j < n; j++)
+		// 		ss << std::to_string(*(in_topRightMatrix[i][j])) << "$'\n'";
+		// printf("s: %s\n", ss.str().c_str());
+		// invoke
 		execl("/usr/bin/ssh", "ssh", redId, "~/CS401/wq/red_worker", "<<<", ss.str().c_str(), (char *)0);
 		exit(0);
 	}
@@ -128,16 +142,6 @@ void produce(queue_attr *queue, queue_d *data)
 	put(queue->buffer, queue->fill_ptr, queue->count, data);
 	pthread_cond_signal(queue->fill);
 	pthread_mutex_unlock(queue->mutex);
-}
-
-void printMatrix(int **mat, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n; j++)
-			printf("%d ", mat[i][j]);
-		printf("\n");
-	}
 }
 
 input readInput()

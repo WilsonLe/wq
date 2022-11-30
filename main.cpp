@@ -46,36 +46,50 @@ int main(int argc, char *argv[])
 	// read input
 	input in = readInput();
 
+	// divide up the work
 	int blockSize = 1;
-	for (int i = 0; i < in.n; i++)
+	printf("in.n / blockSize: %d\n", in.n / blockSize);
+	int ****blocks = (int ****)malloc(sizeof(int ***) * in.n / blockSize);
+	for (int i = 0; i < in.n / blockSize; i++)
 	{
-		int iBlock = i / blockSize;
-		for (int j = i; j < in.n; j++)
+		blocks[i] = (int ***)malloc(sizeof(int **) * in.n / blockSize);
+		for (int j = 0; j < in.n / blockSize; j++)
 		{
-			int jBlock = j / blockSize;
-			if (iBlock == jBlock)
+			blocks[i][j] = (int **)malloc(sizeof(int *) * blockSize);
+			for (int k = 0; k < blockSize; k++)
 			{
-				// handle diagonal blocks
-			}
-			else
-			{
-				// handle pair blocks
-				int **topRightBlock = (int **)malloc(sizeof(int *) * blockSize);
-				for (int i = 0; i < blockSize; i++)
-					topRightBlock[i] = (int *)malloc(sizeof(int) * blockSize);
-				topRightBlock[i % blockSize][j % blockSize] = in.data[i][j];
-				int **bottomLeftBlock = (int **)malloc(sizeof(int *) * blockSize);
-				for (int i = 0; i < blockSize; i++)
-					bottomLeftBlock[i] = (int *)malloc(sizeof(int) * blockSize);
-				bottomLeftBlock[j % blockSize][i % blockSize] = in.data[j][i];
-				queue_d *data = (queue_d *)malloc(sizeof(queue_d));
-				data->n = blockSize;
-				data->topRight = topRightBlock;
-				data->bottomLeft = bottomLeftBlock;
-				produce(&queue, data);
+				blocks[i][j][k] = (int *)malloc(sizeof(int) * blockSize);
 			}
 		}
 	}
+
+	for (int i = 0; i < in.n; i++)
+		for (int j = i; j < in.n; j++)
+		{
+			int **temp = blocks[i / blockSize][j / blockSize];
+			blocks[i / blockSize][j / blockSize][i % blockSize][j % blockSize] = in.data[i][j];
+			blocks[j / blockSize][i / blockSize][j % blockSize][i % blockSize] = in.data[j][i];
+		}
+
+	for (int i = 0; i < in.n / blockSize; i++)
+		for (int j = i; j < in.n / blockSize; j++)
+		{
+			if (i != j)
+			{
+				int **topRightBlock = blocks[i][j];
+				int **bottomLeftBlock = blocks[j][i];
+				printf("------------------\n");
+				printMatrix(topRightBlock, blockSize);
+				printf("--------\n");
+				printMatrix(bottomLeftBlock, blockSize);
+				printf("------------------\n");
+				// queue_d *data = (queue_d *)malloc(sizeof(queue_d));
+				// data->n = blockSize;
+				// data->topRight = topRightBlock;
+				// data->bottomLeft = bottomLeftBlock;
+				// produce(&queue, data);
+			}
+		}
 
 	// join threads
 	for (int i = 0; i < numThreads; i++)
