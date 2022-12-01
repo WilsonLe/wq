@@ -38,7 +38,9 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int ****in_bottomLeftMatrices, int ****out_topRightMatrices, int ****out_bottomLeftMatrices)
 {
 	int link[2];
-	int outputSize = sizeof(char) + sizeof('\n') + (sizeof(char) * 2 * n + sizeof('\n')) * n * 2;
+	int lineSize = (sizeof(char) + sizeof(',')) * n + sizeof('\n');
+	int matSize = lineSize * n;
+	int outputSize = matSize * numPairs * 2;
 	char outputBytes[outputSize];
 	memset(outputBytes, 0, outputSize);
 	pipe(link);
@@ -89,7 +91,7 @@ void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int *
 
 				// parse output of worker thread
 				std::stringstream ss(outputBytes);
-				printf("ss: \n%s", ss.str().c_str());
+				// printf("ss: \n%s", ss.str().c_str());
 				std::string substr;
 				for (int pair = 0; pair < numPairs; pair++)
 				{
