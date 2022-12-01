@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	input in = readInput();
 
 	// divide up the work
-	int blockSize = 4;
+	int blockSize = 2;
 	int ****blocks = (int ****)malloc(sizeof(int ***) * in.n / blockSize);
 	for (int i = 0; i < in.n / blockSize; i++)
 	{
@@ -71,23 +71,44 @@ int main(int argc, char *argv[])
 		}
 
 	for (int i = 0; i < in.n / blockSize; i++)
-		for (int j = i; j < in.n / blockSize; j++)
+	{
+		int numBlocks = (in.n / blockSize) - i - 1; // ignore the i==j blocks
+		if (numBlocks == 0)
+			continue;
+		// printf("numBlocks: %d\n", numBlocks);
+		int ***topRightBlocks = (int ***)malloc(sizeof(int **) * numBlocks);
+		for (int i = 0; i < numBlocks; i++)
 		{
-			if (i != j)
-			{
-				int **topRightBlock = blocks[i][j];
-				int **bottomLeftBlock = blocks[j][i];
-				queue_d *data = (queue_d *)malloc(sizeof(queue_d));
-				data->n = blockSize;
-				data->topRight = topRightBlock;
-				data->bottomLeft = bottomLeftBlock;
-				// printf("producing:\n");
-				// printMatrix(data->topRight, data->n);
-				// printMatrix(data->bottomLeft, data->n);
-				produce(&queue, data);
-			}
+			topRightBlocks[i] = (int **)malloc(sizeof(int *) * blockSize);
+			for (int j = 0; j < numBlocks; j++)
+				topRightBlocks[i][j] = (int *)malloc(sizeof(int) * blockSize);
+		}
+		int ***bottomLeftBlocks = (int ***)malloc(sizeof(int **) * numBlocks);
+		for (int i = 0; i < numBlocks; i++)
+		{
+			bottomLeftBlocks[i] = (int **)malloc(sizeof(int *) * blockSize);
+			for (int j = 0; j < numBlocks; j++)
+				bottomLeftBlocks[i][j] = (int *)malloc(sizeof(int) * blockSize);
 		}
 
+		for (int j = i + 1; j < in.n / blockSize; j++)
+		{
+			topRightBlocks[j - i - 1] = blocks[i][j];
+			bottomLeftBlocks[j - i - 1] = blocks[j][i];
+		}
+		queue_d *data = (queue_d *)malloc(sizeof(queue_d));
+		data->n = blockSize;
+		data->numPairs = numBlocks;
+		data->topRights = topRightBlocks;
+		data->bottomLefts = bottomLeftBlocks;
+		// printf("producing:\n");
+		// for (int i = 0; i < numBlocks; i++)
+		// {
+		// 	printMatrix(data->topRights[i], data->n);
+		// 	printMatrix(data->bottomLefts[i], data->n);
+		// }
+		produce(&queue, data);
+	}
 	// join threads
 	for (int i = 0; i < numThreads; i++)
 		pthread_join(tid[i], NULL);

@@ -35,7 +35,7 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 	return tmp;
 }
 
-void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMatrix, int ***out_topRightMatrix, int ***out_bottomLeftMatrix)
+void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int ****in_bottomLeftMatrices, int ****out_topRightMatrices, int ****out_bottomLeftMatrices)
 {
 	int link[2];
 	int outputSize = sizeof(char) + sizeof('\n') + (sizeof(char) * 2 * n + sizeof('\n')) * n * 2;
@@ -56,17 +56,21 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 		// setup data to invoke red_worker
 		std::stringstream ss;
 		ss << n << "$'\n'";
-		for (int i = 0; i < n; i++)
+		ss << numPairs << "$'\n'";
+		for (int k = 0; k < numPairs; k++)
 		{
-			for (int j = 0; j < n; j++)
-				ss << std::to_string((*(in_topRightMatrix))[i][j]) << ",";
-			ss << "$'\n'";
-		}
-		for (int i = 0; i < n; i++)
-		{
-			for (int j = 0; j < n; j++)
-				ss << std::to_string((*in_bottomLeftMatrix)[i][j]) << ",";
-			ss << "$'\n'";
+			for (int i = 0; i < n; i++)
+			{
+				for (int j = 0; j < n; j++)
+					ss << std::to_string((*in_topRightMatrices)[k][i][j]) << ",";
+				ss << "$'\n'";
+			}
+			for (int i = 0; i < n; i++)
+			{
+				for (int j = 0; j < n; j++)
+					ss << std::to_string((*in_bottomLeftMatrices)[k][i][j]) << ",";
+				ss << "$'\n'";
+			}
 		}
 		// printf("s: %s\n", ss.str().c_str());
 		// invoke
@@ -82,25 +86,31 @@ void invoke(char *redId, int n, int ***in_topRightMatrix, int ***in_bottomLeftMa
 			if (WIFEXITED(status) && !WEXITSTATUS(status))
 			{
 				read(link[0], outputBytes, sizeof(outputBytes));
+
+				// parse output of worker thread
 				std::stringstream ss(outputBytes);
+				printf("ss: \n%s", ss.str().c_str());
 				std::string substr;
-				for (int row = 0; row < n; row++)
+				for (int pair = 0; pair < numPairs; pair++)
 				{
-					for (int col = 0; col < n; col++)
+					for (int row = 0; row < n; row++)
 					{
-						std::getline(ss, substr, ',');
-						(*out_topRightMatrix)[row][col] = std::stoi(substr);
+						for (int col = 0; col < n; col++)
+						{
+							std::getline(ss, substr, ',');
+							(*out_topRightMatrices)[pair][row][col] = std::stoi(substr);
+						}
+						std::getline(ss, substr, '\n');
 					}
-					std::getline(ss, substr, '\n');
-				}
-				for (int row = 0; row < n; row++)
-				{
-					for (int col = 0; col < n; col++)
+					for (int row = 0; row < n; row++)
 					{
-						std::getline(ss, substr, ',');
-						(*out_bottomLeftMatrix)[row][col] = std::stoi(substr);
+						for (int col = 0; col < n; col++)
+						{
+							std::getline(ss, substr, ',');
+							(*out_bottomLeftMatrices)[pair][row][col] = std::stoi(substr);
+						}
+						std::getline(ss, substr, '\n');
 					}
-					std::getline(ss, substr, '\n');
 				}
 			}
 			else if (WIFEXITED(status) && WEXITSTATUS(status))
@@ -140,26 +150,48 @@ void consume(queue_attr *queue, int threadId)
 		pthread_mutex_unlock(queue->mutex);
 
 		// worker thread do stuff
-		int **out_topRight = (int **)malloc(sizeof(int *) * data->n);
-		for (int i = 0; i < data->n; i++)
-			out_topRight[i] = (int *)malloc(sizeof(int) * data->n);
-		int **out_bottomLeft = (int **)malloc(sizeof(int *) * data->n);
-		for (int i = 0; i < data->n; i++)
-			out_bottomLeft[i] = (int *)malloc(sizeof(int) * data->n);
+		// parse data from work queue
+		int ***out_topRights = (int ***)malloc(sizeof(int **) * data->numPairs);
+		for (int i = 0; i < data->numPairs; i++)
+		{
+			out_topRights[i] = (int **)malloc(sizeof(int **) * data->n);
+			for (int j = 0; j < data->n; j++)
+				out_topRights[i][j] = (int *)malloc(sizeof(int) * data->n);
+		}
+		int ***out_bottomLefts = (int ***)malloc(sizeof(int **) * data->numPairs);
+		for (int i = 0; i < data->numPairs; i++)
+		{
+			out_bottomLefts[i] = (int **)malloc(sizeof(int **) * data->n);
+			for (int j = 0; j < data->n; j++)
+				out_bottomLefts[i][j] = (int *)malloc(sizeof(int) * data->n);
+		}
 
 		char _[4] = "lab";
 		char *redId = strcat(_, std::to_string(threadId).c_str());
-		invoke(redId, data->n, &(data->topRight), &(data->bottomLeft), &out_topRight, &out_bottomLeft);
-		printMatrix(out_topRight, data->n);
-		printMatrix(out_bottomLeft, data->n);
+		invoke(redId, data->n, data->numPairs, &(data->topRights), &(data->bottomLefts), &out_topRights, &out_bottomLefts);
+
+		for (int i = 0; i < data->numPairs; i++)
+		{
+			printMatrix(out_topRights[i], data->n);
+			printMatrix(out_bottomLefts[i], data->n);
+		}
 
 		// free output
-		for (int i = 0; i < data->n; i++)
-			free(out_bottomLeft[i]);
-		free(out_bottomLeft);
-		for (int i = 0; i < data->n; i++)
-			free(out_topRight[i]);
-		free(out_topRight);
+		for (int i = 0; i < data->numPairs; i++)
+		{
+			for (int j = 0; j < data->n; j++)
+				free(out_bottomLefts[i][j]);
+			free(out_bottomLefts[i]);
+		}
+		free(out_bottomLefts);
+
+		for (int i = 0; i < data->numPairs; i++)
+		{
+			for (int j = 0; j < data->n; j++)
+				free(out_topRights[i][j]);
+			free(out_topRights[i]);
+		}
+		free(out_topRights);
 	}
 }
 

@@ -14,8 +14,9 @@ input readInput();
 typedef struct queue_d
 {
 	int n;
-	int **topRight;
-	int **bottomLeft;
+	int numPairs;
+	int ***topRights;
+	int ***bottomLefts;
 } queue_d;
 
 typedef struct queue_attr
