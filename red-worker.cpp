@@ -14,6 +14,16 @@ void parseMatrixSize(int *n)
 	*n = std::stoi(substr);
 }
 
+void parseNumPairs(int *n)
+{
+	char str[MAT_MAX];
+	fgets(str, MAT_MAX, stdin);
+	std::string substr;
+	std::stringstream ss(str);
+	std::getline(ss, substr, '\n');
+	*n = std::stoi(substr);
+}
+
 void parseMatrix(int n, int ***mat)
 {
 
@@ -34,25 +44,44 @@ void parseMatrix(int n, int ***mat)
 int main()
 {
 	int n;
+	int numPairs;
 	parseMatrixSize(&n);
-	int **topRightMatrix = (int **)malloc(sizeof(int *) * n);
-	for (int i = 0; i < n; i++)
-		topRightMatrix[i] = (int *)malloc(sizeof(int) * n);
-	parseMatrix(n, &topRightMatrix);
-	int **bottomLeftMatrix = (int **)malloc(sizeof(int *) * n);
-	for (int i = 0; i < n; i++)
-		bottomLeftMatrix[i] = (int *)malloc(sizeof(int) * n);
-	parseMatrix(n, &bottomLeftMatrix);
+	parseNumPairs(&numPairs);
 
-	// transpose
-	for (int i = 0; i < n; i++)
+	int ***out_topRights = (int ***)malloc(sizeof(int **) * numPairs);
+	for (int i = 0; i < numPairs; i++)
+	{
+		out_topRights[i] = (int **)malloc(sizeof(int **) * n);
 		for (int j = 0; j < n; j++)
-		{
-			int temp = topRightMatrix[i][j];
-			topRightMatrix[i][j] = bottomLeftMatrix[j][i];
-			bottomLeftMatrix[j][i] = temp;
-		}
-	printMatrix(topRightMatrix, n);
-	printMatrix(bottomLeftMatrix, n);
+			out_topRights[i][j] = (int *)malloc(sizeof(int) * n);
+	}
+	int ***out_bottomLefts = (int ***)malloc(sizeof(int **) * numPairs);
+	for (int i = 0; i < numPairs; i++)
+	{
+		out_bottomLefts[i] = (int **)malloc(sizeof(int **) * n);
+		for (int j = 0; j < n; j++)
+			out_bottomLefts[i][j] = (int *)malloc(sizeof(int) * n);
+	}
+
+	for (int k = 0; k < numPairs; k++)
+	{
+		parseMatrix(n, &(out_topRights[k]));
+		parseMatrix(n, &(out_bottomLefts[k]));
+
+		// transpose
+		for (int i = 0; i < n; i++)
+			for (int j = 0; j < n; j++)
+			{
+				int temp = out_topRights[k][i][j];
+				out_topRights[k][i][j] = out_bottomLefts[k][j][i];
+				out_bottomLefts[k][j][i] = temp;
+			}
+	}
+	for (int i = 0; i < numPairs; i++)
+	{
+		printMatrix(out_topRights[i], n);
+		printMatrix(out_bottomLefts[i], n);
+	}
+
 	return 0;
 }
