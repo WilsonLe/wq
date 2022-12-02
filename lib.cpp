@@ -38,7 +38,7 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int ****in_bottomLeftMatrices, int ****out_topRightMatrices, int ****out_bottomLeftMatrices)
 {
 	int link[2];
-	int lineSize = (sizeof(char) + sizeof(',')) * n + sizeof('\n');
+	int lineSize = (sizeof(char) * MAX_CHAR_PER_ENTRY + sizeof(',')) * n + sizeof('\n');
 	int matSize = lineSize * n;
 	int outputSize = matSize * numPairs * 2;
 	char outputBytes[outputSize];
@@ -74,7 +74,6 @@ void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int *
 				ss << "$'\n'";
 			}
 		}
-		// printf("s: %s\n", ss.str().c_str());
 		// invoke
 		execl("/usr/bin/ssh", "ssh", redId, "~/CS401/wq/red_worker", "<<<", ss.str().c_str(), (char *)0);
 		exit(0);
@@ -140,13 +139,22 @@ void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int *
 	}
 }
 
-void consume(queue_attr *queue, int threadId)
+void consume(queue_attr *queue, int threadId, int ***data_ptr, int data_len)
 {
 	while (true)
 	{
 		pthread_mutex_lock(queue->mutex);
 		while (*(queue->count) == 0)
-			pthread_cond_wait(queue->fill, queue->mutex);
+		{
+			if (*(queue->stopOnEmpty) == 0)
+				pthread_cond_wait(queue->fill, queue->mutex);
+			if (*(queue->stopOnEmpty) == 1)
+			{
+				pthread_mutex_unlock(queue->mutex);
+				return;
+			}
+		}
+
 		queue_d *data = get(queue->buffer, queue->use_ptr, queue->count);
 		pthread_cond_signal(queue->empty);
 		pthread_mutex_unlock(queue->mutex);
@@ -172,28 +180,28 @@ void consume(queue_attr *queue, int threadId)
 		char *redId = strcat(_, std::to_string(threadId).c_str());
 		invoke(redId, data->n, data->numPairs, &(data->topRights), &(data->bottomLefts), &out_topRights, &out_bottomLefts);
 
-		for (int i = 0; i < data->numPairs; i++)
-		{
-			printMatrix(out_topRights[i], data->n);
-			printMatrix(out_bottomLefts[i], data->n);
-		}
+		// assign output value
+		int numBlocks = data_len / BLOCK_SIZE;
 
-		// free output
-		for (int i = 0; i < data->numPairs; i++)
-		{
-			for (int j = 0; j < data->n; j++)
-				free(out_bottomLefts[i][j]);
-			free(out_bottomLefts[i]);
-		}
-		free(out_bottomLefts);
+		// offset number of blocks from top and left
+		// I.e blockNum = 0 refers to the top row and left column blocks
+		int blockNum = numBlocks - data->numPairs - 1;
 
-		for (int i = 0; i < data->numPairs; i++)
+		for (int k = 0; k < data->numPairs; k++)
 		{
-			for (int j = 0; j < data->n; j++)
-				free(out_topRights[i][j]);
-			free(out_topRights[i]);
+			int blockIndex = blockNum + k;
+			int blockOffset = blockIndex * BLOCK_SIZE + BLOCK_SIZE;
+			for (int i = 0; i < BLOCK_SIZE; i++)
+			{
+				for (int j = 0; j < BLOCK_SIZE; j++)
+				{
+					int x = blockOffset + j;
+					int y = blockNum + i;
+					(*data_ptr)[y][x] = out_topRights[k][i][j];
+					(*data_ptr)[x][y] = out_bottomLefts[k][j][i];
+				}
+			}
 		}
-		free(out_topRights);
 	}
 }
 

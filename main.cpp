@@ -5,17 +5,21 @@
 void *createWorkerThread(void *input)
 {
 	worker_t_input *_input = (worker_t_input *)input;
-	consume(_input->queue, _input->threadId);
-	free(input);
+	consume(_input->queue, _input->threadId, _input->data_ptr, _input->data_len);
 	return NULL;
 }
 
 int main(int argc, char *argv[])
 {
+	// read input
+	input in = readInput();
+
 	// setup work queue data
 	int fill_ptr = 0;
 	int use_ptr = 0;
 	int count = 0;
+	int numConsumed = 0;
+	char stopOnEmpty = 0;
 	void **buffer = (void **)malloc(sizeof(void *) * WQ_MAX);
 	pthread_cond_t empty, fill;
 	pthread_cond_init(&empty, NULL);
@@ -31,23 +35,25 @@ int main(int argc, char *argv[])
 	queue.count = &count;
 	queue.fill = &fill;
 	queue.empty = &empty;
+	queue.stopOnEmpty = &stopOnEmpty;
 
 	// spawn worker thread pool
-	int numThreads = 4;
+	int numThreads = NUM_WORKER;
 	pthread_t tid[numThreads];
 	for (int i = 0; i < numThreads; i++)
 	{
-		worker_t_input *input = (worker_t_input *)malloc(sizeof(worker_t_input *));
-		input->queue = &queue;
-		input->threadId = i + 2; // start from red2 -> red5
-		pthread_create(&tid[i], NULL, createWorkerThread, input);
+		worker_t_input input;
+		input.queue = &queue;
+		input.data_ptr = &(in.data);
+		input.threadId = i + 2; // start from red2 -> red5
+		input.data_len = in.n;
+		pthread_create(&tid[i], NULL, createWorkerThread, &input);
 	}
 
-	// read input
-	input in = readInput();
-
 	// divide up the work
-	int blockSize = 2;
+	int blockSize = BLOCK_SIZE;
+
+	// allocate blocks
 	int ****blocks = (int ****)malloc(sizeof(int ***) * in.n / blockSize);
 	for (int i = 0; i < in.n / blockSize; i++)
 	{
@@ -62,6 +68,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	// assign data values to blocks
 	for (int i = 0; i < in.n; i++)
 		for (int j = i; j < in.n; j++)
 		{
@@ -70,6 +77,7 @@ int main(int argc, char *argv[])
 			blocks[j / blockSize][i / blockSize][j % blockSize][i % blockSize] = in.data[j][i];
 		}
 
+	// iterate through blocks to produce to work queue
 	for (int i = 0; i < in.n / blockSize; i++)
 	{
 		int numBlocks = (in.n / blockSize) - i - 1; // ignore the i==j blocks
@@ -101,7 +109,7 @@ int main(int argc, char *argv[])
 		data->numPairs = numBlocks;
 		data->topRights = topRightBlocks;
 		data->bottomLefts = bottomLeftBlocks;
-		// printf("producing:\n");
+		// printf("producing numBlocks: %d\n", data->numPairs);
 		// for (int i = 0; i < numBlocks; i++)
 		// {
 		// 	printMatrix(data->topRights[i], data->n);
@@ -109,17 +117,39 @@ int main(int argc, char *argv[])
 		// }
 		produce(&queue, data);
 	}
+
+	// toggle stopOnEmpty, then signal all worker thread to wake up and return
+	stopOnEmpty = 1;
+
+	// sequentially transpose diagonal blocks in-place
+	for (int k = 0; k < in.n / blockSize; k++)
+	{
+		for (int i = 0; i < BLOCK_SIZE; i++)
+		{
+			for (int j = i + 1; j < BLOCK_SIZE; j++)
+			{
+				int x = k + j;
+				int y = k + i;
+				int tmp = in.data[y][x];
+				in.data[y][x] = in.data[x][y];
+				in.data[x][y] = tmp;
+			}
+		}
+	}
+
 	// join threads
 	for (int i = 0; i < numThreads; i++)
+	{
+		pthread_cond_signal(queue.fill);
 		pthread_join(tid[i], NULL);
+	}
+
+	printMatrix(in.data, in.n);
 
 	// free memory
 	for (int i = 0; i < in.n; i++)
 		free(in.data[i]);
 	free(in.data);
-
-	for (int i = 0; i < WQ_MAX; i++)
-		free(buffer[i]);
 	free(buffer);
 
 	pthread_mutex_destroy(&mutex);

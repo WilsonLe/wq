@@ -2,6 +2,9 @@
 #define LIB
 #define WQ_MAX 256
 #define MAT_MAX 65536
+#define BLOCK_SIZE 1
+#define NUM_WORKER 4
+#define MAX_CHAR_PER_ENTRY 2
 
 typedef struct input
 {
@@ -28,12 +31,15 @@ typedef struct queue_attr
 	int *count;
 	pthread_cond_t *fill;
 	pthread_cond_t *empty;
+	char *stopOnEmpty;
 } queue_attr;
 
 typedef struct worker_t_input
 {
 	queue_attr *queue;
 	int threadId;
+	int ***data_ptr;
+	int data_len;
 } worker_t_input;
 
 void put(queue_d ***buffer, int *fill_ptr, int *count, queue_d *data);
@@ -42,7 +48,7 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count);
 
 void printMatrix(int **mat, int n);
 
-void consume(queue_attr *queue, int threadId);
+void consume(queue_attr *queue, int threadId, int ***data_ptr, int data_len);
 
 void produce(queue_attr *queue, queue_d *work);
 
