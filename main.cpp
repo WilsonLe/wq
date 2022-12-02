@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
 		{
 			for (int j = i + 1; j < BLOCK_SIZE; j++)
 			{
-				int x = k + j;
-				int y = k + i;
+				int x = k * BLOCK_SIZE + j;
+				int y = k * BLOCK_SIZE + i;
 				int tmp = in.data[y][x];
 				in.data[y][x] = in.data[x][y];
 				in.data[x][y] = tmp;

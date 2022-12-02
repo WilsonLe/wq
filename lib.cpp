@@ -196,7 +196,7 @@ void consume(queue_attr *queue, int threadId, int ***data_ptr, int data_len)
 				for (int j = 0; j < BLOCK_SIZE; j++)
 				{
 					int x = blockOffset + j;
-					int y = blockNum + i;
+					int y = blockNum * BLOCK_SIZE + i;
 					(*data_ptr)[y][x] = out_topRights[k][i][j];
 					(*data_ptr)[x][y] = out_bottomLefts[k][j][i];
 				}

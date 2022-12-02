@@ -2,7 +2,7 @@
 #define LIB
 #define WQ_MAX 256
 #define MAT_MAX 65536
-#define BLOCK_SIZE 1
+#define BLOCK_SIZE 2
 #define NUM_WORKER 4
 #define MAX_CHAR_PER_ENTRY 2
 
