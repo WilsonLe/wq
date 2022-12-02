@@ -1,5 +1,6 @@
 main
 red_worker
+generate_input
 input.txt
 output.txt
 time.csv
