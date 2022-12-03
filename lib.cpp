@@ -322,7 +322,8 @@ int parseArgument(int argc, char **argv)
 			printf("Use --wq-max <number> to specify number of slots in work queue. Defaults to 256.\n");
 			printf("Use --max-char-per-entry <number> to specify number of maximum character per entry (i.e 24 takes 2 characters, 100 takes 3 characters). Defaults to 2.\n");
 			printf("Use --max-mat-dim <number> to specify number of maximum matrix size in terms of number of emtries. Defaults to 128.\n");
-			printf("Use -t to specify to count the time taken to complete the work\n");
+			printf("Use -t to specify to count the time taken to complete the work.\n");
+			printf("Use -v to run program in verbose mode.\n");
 			return 0;
 		}
 		else if (strcmp(argv[1], "-v") == 0)
