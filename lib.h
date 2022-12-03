@@ -10,6 +10,8 @@ extern int MAX_MAT_DIM_BYTES;  // maximum maxtrix dimension in bytes
 extern char *WORKER_NAMES;	   // string of worker ids, comma separated, no spaces
 extern char **_WORKER_NAMES;   // array of string of worker ids, parsed from WORKER_NAMES
 extern int VERBOSE;			   // whether to run the program in verbose mode
+extern int ARGC;			   // command line args count
+extern char **ARGV;			   // command line args
 
 typedef struct input
 {

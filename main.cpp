@@ -4,6 +4,8 @@
 
 int main(int argc, char **argv)
 {
+
+	// populate default configs
 	BLOCK_SIZE = 2;
 	NUM_WORKER = 4;
 	WQ_MAX = 256;
@@ -17,7 +19,10 @@ int main(int argc, char **argv)
 	_WORKER_NAMES[2] = (char *)"lab2";
 	_WORKER_NAMES[3] = (char *)"lab3";
 	VERBOSE = 0;
+	ARGC = argc;
+	ARGV = argv;
 
+	// parse arugment to overwrite default config
 	int rc = parseArgument(argc, argv);
 	if (rc == 1 || rc == 0)
 		return rc;

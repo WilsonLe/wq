@@ -20,6 +20,8 @@ int MAX_MAT_DIM;
 int MAX_CHAR_PER_ENTRY;
 int MAX_MAT_DIM_BYTES;
 int VERBOSE;
+int ARGC;
+char **ARGV;
 
 void printMatrix(int **mat, int n)
 {
@@ -85,8 +87,13 @@ void invoke(char *workerName, int n, int numPairs, int ****in_topRightMatrices, 
 				ss << "$'\n'";
 			}
 		}
+		// propagate command line argument
+		std::stringstream args("~/CS401/wq/worker");
+		for (int i = 1; i < ARGC; i++)
+			args << ARGV[i] << " ";
+
 		// invoke
-		execl("/usr/bin/ssh", "ssh", workerName, "~/CS401/wq/worker", "<<<", ss.str().c_str(), (char *)0);
+		execl("/usr/bin/ssh", "ssh", workerName, args.str().c_str(), "<<<", ss.str().c_str(), (char *)0);
 		exit(0);
 	}
 	else
