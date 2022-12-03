@@ -14,6 +14,8 @@ int WQ_MAX;
 int MAT_MAX_DIM_BYTES;
 int BLOCK_SIZE;
 int NUM_WORKER;
+char *WORKER_NAMES;
+char **_WORKER_NAMES;
 int MAX_MAT_DIM;
 int MAX_CHAR_PER_ENTRY;
 int MAX_MAT_DIM_BYTES;
@@ -44,7 +46,7 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count)
 	return tmp;
 }
 
-void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int ****in_bottomLeftMatrices, int ****out_topRightMatrices, int ****out_bottomLeftMatrices)
+void invoke(char *workerName, int n, int numPairs, int ****in_topRightMatrices, int ****in_bottomLeftMatrices, int ****out_topRightMatrices, int ****out_bottomLeftMatrices)
 {
 	int link[2];
 	int lineSize = (sizeof(char) * MAX_CHAR_PER_ENTRY + sizeof(',')) * n + sizeof('\n');
@@ -84,7 +86,7 @@ void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int *
 			}
 		}
 		// invoke
-		execl("/usr/bin/ssh", "ssh", redId, "~/CS401/wq/red_worker", "<<<", ss.str().c_str(), (char *)0);
+		execl("/usr/bin/ssh", "ssh", workerName, "~/CS401/wq/worker", "<<<", ss.str().c_str(), (char *)0);
 		exit(0);
 	}
 	else
@@ -148,7 +150,7 @@ void invoke(char *redId, int n, int numPairs, int ****in_topRightMatrices, int *
 	}
 }
 
-void consume(queue_attr *queue, int threadId, int ***data_ptr, int data_len)
+void consume(queue_attr *queue, char *workerName, int ***data_ptr, int data_len)
 {
 	while (true)
 	{
@@ -185,9 +187,7 @@ void consume(queue_attr *queue, int threadId, int ***data_ptr, int data_len)
 				out_bottomLefts[i][j] = (int *)malloc(sizeof(int) * data->n);
 		}
 
-		char _[4] = "lab";
-		char *redId = strcat(_, std::to_string(threadId).c_str());
-		invoke(redId, data->n, data->numPairs, &(data->topRights), &(data->bottomLefts), &out_topRights, &out_bottomLefts);
+		invoke(workerName, data->n, data->numPairs, &(data->topRights), &(data->bottomLefts), &out_topRights, &out_bottomLefts);
 
 		// assign output value
 		int numBlocks = data_len / BLOCK_SIZE;
@@ -290,11 +290,12 @@ int parseArgument(int argc, char **argv)
 	{
 		if (strcmp(argv[1], "-h") == 0)
 		{
-			printf("Use --block-size <number> to specify block size to break down the matrix\n");
-			printf("Use --num-worker <number> to specify number of worker consuming from work queue\n");
-			printf("Use --wq-max <number> to specify number of slots in work queue\n");
-			printf("Use --max-char-per-entry <number> to specify number of maximum character per entry (i.e 24 takes 2 characters, 100 takes 3 characters)\n");
-			printf("Use --max-mat-dim <number> to specify number of maximum matrix size\n");
+			printf("Use --block-size <number> to specify block size to break down the matrix. Defaults to 2.\n");
+			printf("Use --num-worker <number> to specify number of worker consuming from work queue. Defaults to 4.\n");
+			printf("Use --worker-names <comma separated string> to specify worker names (must match names in your ssh config file). Defaults to 'lab0,lab1,lab2,lab3'.");
+			printf("Use --wq-max <number> to specify number of slots in work queue. Defaults to 256.\n");
+			printf("Use --max-char-per-entry <number> to specify number of maximum character per entry (i.e 24 takes 2 characters, 100 takes 3 characters). Defaults to 2.\n");
+			printf("Use --max-mat-dim <number> to specify number of maximum matrix size in terms of number of emtries. Defaults to 128.\n");
 			return 0;
 		}
 		else if (strcmp(argv[1], "-v") == 0)
@@ -345,6 +346,21 @@ int parseArgument(int argc, char **argv)
 					printf("Invalid argument type, expect <number>, got '%s'\n", argv[i + 1]);
 					return 1;
 				}
+			}
+			else if (strcmp(arg, "--worker-names") == 0)
+			{
+				char **_workerNames = (char **)malloc(sizeof(char *) * NUM_WORKER);
+				char *ch;
+				ch = strtok(argv[i + 1], ",");
+				_workerNames[0] = ch;
+				int ii = 1;
+				while (ch != NULL)
+				{
+					ch = strtok(NULL, ",");
+					_workerNames[ii] = ch;
+					ii++;
+				}
+				_WORKER_NAMES = _workerNames;
 			}
 			else if (strcmp(arg, "--wq-max") == 0)
 			{
@@ -397,6 +413,6 @@ int parseArgument(int argc, char **argv)
 void *createWorkerThread(void *input)
 {
 	worker_t_input *_input = (worker_t_input *)input;
-	consume(_input->queue, _input->threadId, _input->data_ptr, _input->data_len);
+	consume(_input->queue, _input->workerName, _input->data_ptr, _input->data_len);
 	return NULL;
 }

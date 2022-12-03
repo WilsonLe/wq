@@ -1,5 +1,5 @@
-main
-red_worker
+producer
+worker
 generate_input
 input.txt
 output.txt
