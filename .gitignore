@@ -1,7 +1,5 @@
 producer
 worker
 generate_input
-timer
 input.txt
 output.txt
-time.csv

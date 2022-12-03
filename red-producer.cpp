@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 	// read input
 	input in = readInput();
 
-	if (VERBOSE)
+	if (VERBOSE && TIME)
 	{
 		printf("read input: %f ms\n", time());
 	}
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	queue.empty = &empty;
 	queue.stopOnEmpty = &stopOnEmpty;
 
-	if (VERBOSE)
+	if (VERBOSE && TIME)
 	{
 		printf("init queue: %f ms\n", time());
 	}
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 		pthread_create(&tid[i], NULL, createWorkerThread, &input);
 	}
 
-	if (VERBOSE)
+	if (VERBOSE && TIME)
 	{
 		printf("spawn worker thread pool: %f ms\n", time());
 	}
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 			blocks[j / blockSize][i / blockSize][j % blockSize][i % blockSize] = in.data[j][i];
 		}
 
-	if (VERBOSE)
+	if (VERBOSE && TIME)
 	{
 		printf("divide up the work: %f ms\n", time());
 	}
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 		produce(&queue, data);
 	}
 
-	if (VERBOSE)
+	if (VERBOSE && TIME)
 	{
 		printf("produced all work to work queue: %f ms\n", time());
 	}
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if (VERBOSE)
+	if (VERBOSE && TIME)
 	{
 		printf("sequentially transpose diagonal blocks in-place: %f ms\n", time());
 	}
@@ -208,7 +208,8 @@ int main(int argc, char **argv)
 	}
 
 	printMatrix(in.data, in.n);
-	printf("%f\n", time());
+	if (TIME)
+		printf("%f\n", time());
 
 	// free memory
 	for (int i = 0; i < in.n; i++)
