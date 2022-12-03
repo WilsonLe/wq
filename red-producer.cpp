@@ -2,21 +2,25 @@
 #include <iostream>
 #include "lib.h"
 
+// setup time code
+struct timespec begin, end;
+
+/**
+ * @brief get elapsed time since start of program
+ *
+ * @return double in seconds.milliseconds
+ */
+double time()
+{
+	clock_gettime(CLOCK_REALTIME, &end);
+	double elapsed = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_nsec - begin.tv_nsec) * 1e-6;
+	return elapsed;
+}
+
 int main(int argc, char **argv)
 {
-	BLOCK_SIZE = 2;
-	NUM_WORKER = 4;
-	WQ_MAX = 256;
-	MAX_CHAR_PER_ENTRY = 2;
-	MAX_MAT_DIM = 128;
-	MAX_MAT_DIM_BYTES = MAX_MAT_DIM * (MAX_CHAR_PER_ENTRY + sizeof(',')) + sizeof("\n");
-	WORKER_NAMES = (char *)"lab0,lab1,lab2,lab3";
-	_WORKER_NAMES = (char **)malloc(sizeof(char *) * NUM_WORKER);
-	_WORKER_NAMES[0] = (char *)"lab0";
-	_WORKER_NAMES[1] = (char *)"lab1";
-	_WORKER_NAMES[2] = (char *)"lab2";
-	_WORKER_NAMES[3] = (char *)"lab3";
-	VERBOSE = 0;
+	// handling argument
+	initArgument();
 
 	int rc = parseArgument(argc, argv);
 	if (rc == 1 || rc == 0)
@@ -33,10 +37,20 @@ int main(int argc, char **argv)
 		printf("WQ_MAX: %d\n", WQ_MAX);
 		printf("MAX_CHAR_PER_ENTRY: %d\n", MAX_CHAR_PER_ENTRY);
 		printf("MAX_MAT_DIM: %d\n", MAX_MAT_DIM);
+		printf("VERBOSE: %d\n", VERBOSE);
+		printf("TIME: %d\n", TIME);
 	}
+
+	// start timer
+	clock_gettime(CLOCK_REALTIME, &begin);
 
 	// read input
 	input in = readInput();
+
+	if (VERBOSE)
+	{
+		printf("read input: %f ms\n", time());
+	}
 
 	// setup work queue data
 	int fill_ptr = 0;
@@ -61,6 +75,11 @@ int main(int argc, char **argv)
 	queue.empty = &empty;
 	queue.stopOnEmpty = &stopOnEmpty;
 
+	if (VERBOSE)
+	{
+		printf("init queue: %f ms\n", time());
+	}
+
 	// spawn worker thread pool
 	int numThreads = NUM_WORKER;
 	pthread_t tid[numThreads];
@@ -72,6 +91,11 @@ int main(int argc, char **argv)
 		input.workerName = _WORKER_NAMES[i];
 		input.data_len = in.n;
 		pthread_create(&tid[i], NULL, createWorkerThread, &input);
+	}
+
+	if (VERBOSE)
+	{
+		printf("spawn worker thread pool: %f ms\n", time());
 	}
 
 	// divide up the work
@@ -100,6 +124,11 @@ int main(int argc, char **argv)
 			blocks[i / blockSize][j / blockSize][i % blockSize][j % blockSize] = in.data[i][j];
 			blocks[j / blockSize][i / blockSize][j % blockSize][i % blockSize] = in.data[j][i];
 		}
+
+	if (VERBOSE)
+	{
+		printf("divide up the work: %f ms\n", time());
+	}
 
 	// iterate through blocks to produce to work queue
 	for (int i = 0; i < in.n / blockSize; i++)
@@ -142,6 +171,11 @@ int main(int argc, char **argv)
 		produce(&queue, data);
 	}
 
+	if (VERBOSE)
+	{
+		printf("produced all work to work queue: %f ms\n", time());
+	}
+
 	// toggle stopOnEmpty, then signal all worker thread to wake up and return
 	stopOnEmpty = 1;
 
@@ -161,6 +195,11 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (VERBOSE)
+	{
+		printf("sequentially transpose diagonal blocks in-place: %f ms\n", time());
+	}
+
 	// join threads
 	for (int i = 0; i < numThreads; i++)
 	{
@@ -169,6 +208,7 @@ int main(int argc, char **argv)
 	}
 
 	printMatrix(in.data, in.n);
+	printf("%f\n", time());
 
 	// free memory
 	for (int i = 0; i < in.n; i++)

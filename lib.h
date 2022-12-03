@@ -10,6 +10,7 @@ extern int MAX_MAT_DIM_BYTES;  // maximum maxtrix dimension in bytes
 extern char *WORKER_NAMES;	   // string of worker ids, comma separated, no spaces
 extern char **_WORKER_NAMES;   // array of string of worker ids, parsed from WORKER_NAMES
 extern int VERBOSE;			   // whether to run the program in verbose mode
+extern int TIME;			   // whether to count time
 extern int ARGC;			   // command line args count
 extern char **ARGV;			   // command line args
 
@@ -55,9 +56,11 @@ queue_d *get(queue_d ***buffer, int *use_ptr, int *count);
 
 void printMatrix(int **mat, int n);
 
-void consume(queue_attr *queue, int threadId, int ***data_ptr, int data_len);
+void consume(queue_attr *queue, char *workerName, int ***data_ptr, int data_len);
 
 void produce(queue_attr *queue, queue_d *work);
+
+void initArgument(void);
 
 int parseArgument(int argc, char **argv);
 

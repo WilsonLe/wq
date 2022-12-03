@@ -20,6 +20,7 @@ int MAX_MAT_DIM;
 int MAX_CHAR_PER_ENTRY;
 int MAX_MAT_DIM_BYTES;
 int VERBOSE;
+int TIME;
 int ARGC;
 char **ARGV;
 
@@ -278,6 +279,24 @@ int isNaturalNumber(char *s)
 	return 1;
 }
 
+void initArgument()
+{
+	BLOCK_SIZE = 2;
+	NUM_WORKER = 4;
+	WQ_MAX = 256;
+	MAX_CHAR_PER_ENTRY = 2;
+	MAX_MAT_DIM = 128;
+	MAX_MAT_DIM_BYTES = MAX_MAT_DIM * (MAX_CHAR_PER_ENTRY + sizeof(',')) + sizeof("\n");
+	WORKER_NAMES = (char *)"lab0,lab1,lab2,lab3";
+	_WORKER_NAMES = (char **)malloc(sizeof(char *) * NUM_WORKER);
+	_WORKER_NAMES[0] = (char *)"lab0";
+	_WORKER_NAMES[1] = (char *)"lab1";
+	_WORKER_NAMES[2] = (char *)"lab2";
+	_WORKER_NAMES[3] = (char *)"lab3";
+	VERBOSE = 0;
+	TIME = 0;
+}
+
 /**
  * @brief parses input command line argument
  *
@@ -303,11 +322,17 @@ int parseArgument(int argc, char **argv)
 			printf("Use --wq-max <number> to specify number of slots in work queue. Defaults to 256.\n");
 			printf("Use --max-char-per-entry <number> to specify number of maximum character per entry (i.e 24 takes 2 characters, 100 takes 3 characters). Defaults to 2.\n");
 			printf("Use --max-mat-dim <number> to specify number of maximum matrix size in terms of number of emtries. Defaults to 128.\n");
+			printf("Use -t to specify to count the time taken to complete the work\n");
 			return 0;
 		}
 		else if (strcmp(argv[1], "-v") == 0)
 		{
 			VERBOSE = 1;
+			return -1;
+		}
+		else if (strcmp(argv[1], "-t") == 0)
+		{
+			TIME = 1;
 			return -1;
 		}
 		else
@@ -411,6 +436,10 @@ int parseArgument(int argc, char **argv)
 			else if (strcmp(arg, "-v") == 0)
 			{
 				VERBOSE = 1;
+			}
+			else if (strcmp(arg, "-t") == 0)
+			{
+				TIME = 1;
 			}
 		}
 		return -1;
