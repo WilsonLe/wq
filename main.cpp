@@ -2,15 +2,29 @@
 #include <iostream>
 #include "lib.h"
 
-void *createWorkerThread(void *input)
+int main(int argc, char **argv)
 {
-	worker_t_input *_input = (worker_t_input *)input;
-	consume(_input->queue, _input->threadId, _input->data_ptr, _input->data_len);
-	return NULL;
-}
+	BLOCK_SIZE = 2;
+	NUM_WORKER = 4;
+	WQ_MAX = 256;
+	MAX_CHAR_PER_ENTRY = 2;
+	MAX_MAT_DIM = 128;
+	MAX_MAT_DIM_BYTES = MAX_MAT_DIM * (MAX_CHAR_PER_ENTRY + sizeof(',')) + sizeof("\n");
+	VERBOSE = 0;
 
-int main(int argc, char *argv[])
-{
+	int rc = parseArgument(argc, argv);
+	if (rc == 1 || rc == 0)
+		return rc;
+
+	if (VERBOSE)
+	{
+		printf("BLOCK_SIZE: %d\n", BLOCK_SIZE);
+		printf("NUM_WORKER: %d\n", NUM_WORKER);
+		printf("WQ_MAX: %d\n", WQ_MAX);
+		printf("MAX_CHAR_PER_ENTRY: %d\n", MAX_CHAR_PER_ENTRY);
+		printf("MAX_MAT_DIM: %d\n", MAX_MAT_DIM);
+	}
+
 	// read input
 	input in = readInput();
 

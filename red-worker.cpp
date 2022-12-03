@@ -6,8 +6,8 @@
 
 void parseMatrixSize(int *n)
 {
-	char str[MAT_MAX];
-	fgets(str, MAT_MAX, stdin);
+	char str[MAX_MAT_DIM_BYTES];
+	fgets(str, MAX_MAT_DIM_BYTES, stdin);
 	std::string substr;
 	std::stringstream ss(str);
 	std::getline(ss, substr, '\n');
@@ -16,8 +16,8 @@ void parseMatrixSize(int *n)
 
 void parseNumPairs(int *n)
 {
-	char str[MAT_MAX];
-	fgets(str, MAT_MAX, stdin);
+	char str[MAX_MAT_DIM_BYTES];
+	fgets(str, MAX_MAT_DIM_BYTES, stdin);
 	std::string substr;
 	std::stringstream ss(str);
 	std::getline(ss, substr, '\n');
@@ -29,8 +29,8 @@ void parseMatrix(int n, int ***mat)
 
 	for (int row = 0; row < n; row++)
 	{
-		char str[MAT_MAX];
-		fgets(str, MAT_MAX, stdin);
+		char str[MAX_MAT_DIM_BYTES];
+		fgets(str, MAX_MAT_DIM_BYTES, stdin);
 		std::stringstream ss(str);
 		for (int col = 0; col < n; col++)
 		{

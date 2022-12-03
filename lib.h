@@ -1,10 +1,13 @@
 #ifndef LIB
 #define LIB
-#define WQ_MAX 256
-#define MAT_MAX 65536
-#define BLOCK_SIZE 2
-#define NUM_WORKER 4
-#define MAX_CHAR_PER_ENTRY 2
+
+extern int WQ_MAX;
+extern int BLOCK_SIZE;
+extern int NUM_WORKER;
+extern int MAX_CHAR_PER_ENTRY;
+extern int MAX_MAT_DIM;
+extern int MAX_MAT_DIM_BYTES;
+extern int VERBOSE;
 
 typedef struct input
 {
@@ -52,4 +55,7 @@ void consume(queue_attr *queue, int threadId, int ***data_ptr, int data_len);
 
 void produce(queue_attr *queue, queue_d *work);
 
+int parseArgument(int argc, char **argv);
+
+void *createWorkerThread(void *input);
 #endif

@@ -10,6 +10,15 @@
 #include <dirent.h>
 #include <sys/wait.h>
 
+int WQ_MAX;
+int MAT_MAX_DIM_BYTES;
+int BLOCK_SIZE;
+int NUM_WORKER;
+int MAX_MAT_DIM;
+int MAX_CHAR_PER_ENTRY;
+int MAX_MAT_DIM_BYTES;
+int VERBOSE;
+
 void printMatrix(int **mat, int n)
 {
 	for (int i = 0; i < n; i++)
@@ -242,4 +251,152 @@ input readInput()
 		file.close();
 	}
 	return in;
+}
+
+/**
+ * @brief check if input string is a natural number N = {0, 1, 2, 3, ...}
+ *
+ * @param s input string
+ * @return int
+ * 0 if it is not a natural number
+ * 1 if it is a natural number
+ */
+int isNaturalNumber(char *s)
+{
+	for (int i = 0; i < strlen(s); i++)
+	{
+		if (isdigit(s[i]) == 0)
+			return 0;
+	}
+	return 1;
+}
+
+/**
+ * @brief parses input command line argument
+ *
+ * @return int
+ * -1: continue main normally
+ * 1: return 1 in main
+ * 0: return 0 in main
+ */
+int parseArgument(int argc, char **argv)
+{
+	if (argc == 0)
+	{
+		printf("Invalid usage, use -h for details\n");
+		return 1;
+	}
+	else if (argc == 2)
+	{
+		if (strcmp(argv[1], "-h") == 0)
+		{
+			printf("Use --block-size <number> to specify block size to break down the matrix\n");
+			printf("Use --num-worker <number> to specify number of worker consuming from work queue\n");
+			printf("Use --wq-max <number> to specify number of slots in work queue\n");
+			printf("Use --max-char-per-entry <number> to specify number of maximum character per entry (i.e 24 takes 2 characters, 100 takes 3 characters)\n");
+			printf("Use --max-mat-dim <number> to specify number of maximum matrix size\n");
+			return 0;
+		}
+		else if (strcmp(argv[1], "-v") == 0)
+		{
+			VERBOSE = 1;
+			return -1;
+		}
+		else
+		{
+			printf("Invalid usage, use -h for details");
+			return 1;
+		}
+	}
+	else
+	{
+		char skipNextIter = 0;
+		for (int i = 1; i < argc; i++)
+		{
+			if (skipNextIter == 1)
+			{
+				skipNextIter = 0;
+				continue;
+			}
+
+			char *arg = argv[i];
+			if (strcmp(arg, "--block-size") == 0)
+			{
+				if (isNaturalNumber(argv[i + 1]))
+				{
+					BLOCK_SIZE = atoi(argv[i + 1]);
+					skipNextIter = 1;
+				}
+				else
+				{
+					printf("Invalid argument type, expect <number>, got '%s'\n", argv[i + 1]);
+					return 1;
+				}
+			}
+			else if (strcmp(arg, "--num-worker") == 0)
+			{
+				if (isNaturalNumber(argv[i + 1]))
+				{
+					NUM_WORKER = atoi(argv[i + 1]);
+					skipNextIter = 1;
+				}
+				else
+				{
+					printf("Invalid argument type, expect <number>, got '%s'\n", argv[i + 1]);
+					return 1;
+				}
+			}
+			else if (strcmp(arg, "--wq-max") == 0)
+			{
+				if (isNaturalNumber(argv[i + 1]))
+				{
+					WQ_MAX = atoi(argv[i + 1]);
+					skipNextIter = 1;
+				}
+				else
+				{
+					printf("Invalid argument type, expect <number>, got '%s'\n", argv[i + 1]);
+					return 1;
+				}
+			}
+			else if (strcmp(arg, "--max-char-per-entry") == 0)
+			{
+				if (isNaturalNumber(argv[i + 1]))
+				{
+					MAX_CHAR_PER_ENTRY = atoi(argv[i + 1]);
+					skipNextIter = 1;
+				}
+				else
+				{
+					printf("Invalid argument type, expect <number>, got '%s'\n", argv[i + 1]);
+					return 1;
+				}
+			}
+			else if (strcmp(arg, "--max-mat-dim") == 0)
+			{
+				if (isNaturalNumber(argv[i + 1]))
+				{
+					MAX_MAT_DIM = atoi(argv[i + 1]);
+					skipNextIter = 1;
+				}
+				else
+				{
+					printf("Invalid argument type, expect <number>, got '%s'\n", argv[i + 1]);
+					return 1;
+				}
+			}
+			else if (strcmp(arg, "-v") == 0)
+			{
+				VERBOSE = 1;
+			}
+		}
+		return -1;
+	}
+}
+
+void *createWorkerThread(void *input)
+{
+	worker_t_input *_input = (worker_t_input *)input;
+	consume(_input->queue, _input->threadId, _input->data_ptr, _input->data_len);
+	return NULL;
 }
