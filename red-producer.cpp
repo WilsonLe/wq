@@ -161,7 +161,6 @@ int main(int argc, char **argv)
 		data->numPairs = numBlocks;
 		data->topRights = topRightBlocks;
 		data->bottomLefts = bottomLeftBlocks;
-		printf("i: %d\n", i);
 		// for (int i = 0; i < numBlocks; i++)
 		// {
 		// 	printMatrix(data->topRights[i], data->n);
@@ -200,12 +199,10 @@ int main(int argc, char **argv)
 	}
 
 	// join threads
-	
 	for (int i = 0; i < numThreads; i++)
 	{
 		pthread_cond_signal(queue.fill);
 		pthread_join(tid[i], NULL);
-		printf("i: %d\n", i);
 	}
 
 	printMatrix(in.data, in.n);

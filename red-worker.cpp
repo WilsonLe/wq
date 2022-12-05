@@ -51,21 +51,6 @@ int main(int argc, char **argv)
 	if (rc == 1 || rc == 0)
 		return rc;
 
-        if (VERBOSE)
-        {
-                printf("BLOCK_SIZE: %d\n", BLOCK_SIZE);
-                printf("NUM_WORKER: %d\n", NUM_WORKER);
-                printf("WORKER NAMES: ");
-                for (int i = 0; i < NUM_WORKER - 1; i++)
-                        printf("%s, ", _WORKER_NAMES[i]);
-                printf("%s\n", _WORKER_NAMES[NUM_WORKER - 1]);
-                printf("WQ_MAX: %d\n", WQ_MAX);
-                printf("MAX_CHAR_PER_ENTRY: %d\n", MAX_CHAR_PER_ENTRY);
-                printf("MAX_MAT_DIM: %d\n", MAX_MAT_DIM);
-                printf("VERBOSE: %d\n", VERBOSE);
-                printf("TIME: %d\n", TIME);
-        }
-
 	int n;
 	int numPairs;
 	parseMatrixSize(&n);

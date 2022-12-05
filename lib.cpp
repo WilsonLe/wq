@@ -91,7 +91,8 @@ void invoke(char *workerName, int n, int numPairs, int ****in_topRightMatrices, 
 		}
 		// propagate command line argument
 		std::stringstream args;
-		args << "~/CS401/wq/worker" << " ";
+		args << "~/CS401/wq/worker"
+			 << " ";
 		for (int i = 1; i < ARGC; i++)
 			args << ARGV[i] << " ";
 		printf("ARGC: %d\n", ARGC);
@@ -259,7 +260,8 @@ input readInput()
 				std::getline(ss, substr, ',');
 				in.data[row][col] = std::stoi(substr);
 			}
-			if (VERBOSE){
+			if (VERBOSE)
+			{
 				double percent = ((double)row / in.n) * 100;
 				printf("%f%%\n", percent);
 			}
@@ -287,7 +289,7 @@ int isNaturalNumber(char *s)
 	return 1;
 }
 
-void initArgument(int argc, char** argv)
+void initArgument(int argc, char **argv)
 {
 	ARGC = argc;
 	ARGV = argv;

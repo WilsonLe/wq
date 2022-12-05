@@ -78,6 +78,23 @@
 		"mutex": "cpp",
 		"ratio": "cpp",
 		"stack": "cpp",
-		"variant": "cpp"
+		"variant": "cpp",
+		"__tree": "cpp",
+		"cfenv": "cpp",
+		"cinttypes": "cpp",
+		"condition_variable": "cpp",
+		"csetjmp": "cpp",
+		"csignal": "cpp",
+		"forward_list": "cpp",
+		"future": "cpp",
+		"list": "cpp",
+		"map": "cpp",
+		"regex": "cpp",
+		"scoped_allocator": "cpp",
+		"set": "cpp",
+		"thread": "cpp",
+		"typeindex": "cpp",
+		"unordered_set": "cpp",
+		"valarray": "cpp"
 	}
 }
