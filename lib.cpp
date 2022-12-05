@@ -168,13 +168,13 @@ void consume(queue_attr *queue, char *workerName, int ***data_ptr, int data_len)
 		pthread_mutex_lock(queue->mutex);
 		while (*(queue->count) == 0)
 		{
-			if (*(queue->stopOnEmpty) == 0)
-				pthread_cond_wait(queue->fill, queue->mutex);
 			if (*(queue->stopOnEmpty) == 1)
 			{
 				pthread_mutex_unlock(queue->mutex);
 				return;
 			}
+			if (*(queue->stopOnEmpty) == 0)
+				pthread_cond_wait(queue->fill, queue->mutex);
 		}
 
 		queue_d *data = get(queue->buffer, queue->use_ptr, queue->count);

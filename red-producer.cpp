@@ -169,6 +169,8 @@ int main(int argc, char **argv)
 		produce(&queue, data);
 	}
 
+	stopOnEmpty = 1;
+
 	if (VERBOSE && TIME)
 	{
 		printf("produced all work to work queue: %f ms\n", time());
@@ -198,7 +200,6 @@ int main(int argc, char **argv)
 	// join threads
 	for (int i = 0; i < numThreads; i++)
 	{
-		stopOnEmpty = 1;
 		pthread_cond_signal(queue.fill);
 		pthread_join(tid[i], NULL);
 	}
