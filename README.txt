@@ -1,5 +1,9 @@
 # Matrix Transpose
 
+I highly recommend reading the markdown version of this if you have a markdown viewer.
+
+[github repo](https://github.com/WilsonLe/wq)
+
 This program tranposes matrices using work queue to dynamically allocate work for consumer. Host machine will produce all the work and does post-processing after all worker are done.
 
 # Table Of Contents
