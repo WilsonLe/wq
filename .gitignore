@@ -3,3 +3,4 @@ worker
 generate_input
 input*.txt
 output.txt
+.vscode
