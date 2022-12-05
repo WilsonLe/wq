@@ -174,9 +174,6 @@ int main(int argc, char **argv)
 		printf("produced all work to work queue: %f ms\n", time());
 	}
 
-	// toggle stopOnEmpty, then signal all worker thread to wake up and return
-	stopOnEmpty = 1;
-
 	// sequentially transpose diagonal blocks in-place
 	for (int k = 0; k < in.n / blockSize; k++)
 	{
@@ -201,6 +198,7 @@ int main(int argc, char **argv)
 	// join threads
 	for (int i = 0; i < numThreads; i++)
 	{
+		stopOnEmpty = 1;
 		pthread_cond_signal(queue.fill);
 		pthread_join(tid[i], NULL);
 	}
