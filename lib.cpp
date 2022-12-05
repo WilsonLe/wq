@@ -95,8 +95,6 @@ void invoke(char *workerName, int n, int numPairs, int ****in_topRightMatrices, 
 			 << " ";
 		for (int i = 1; i < ARGC; i++)
 			args << ARGV[i] << " ";
-		printf("ARGC: %d\n", ARGC);
-		printf("args: %s\n", args.str().c_str());
 
 		// invoke
 		execl("/usr/bin/ssh", "ssh", workerName, args.str().c_str(), "<<<", ss.str().c_str(), (char *)0);
