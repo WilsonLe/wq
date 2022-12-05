@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 /**
  * @brief generate input matrix
@@ -42,6 +43,8 @@ int main(int argc, char **argv)
 			outfile << j << ',';
 		}
 		outfile << std::endl;
+		double progress = (double)i / n; 
+		printf("%f%%\n", progress * 100);
 	}
 	return 0;
 }

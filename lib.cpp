@@ -69,6 +69,7 @@ void invoke(char *workerName, int n, int numPairs, int ****in_topRightMatrices, 
 		dup2(link[1], STDOUT_FILENO);
 		close(link[0]);
 		close(link[1]);
+
 		// setup data to invoke red_worker
 		std::stringstream ss;
 		ss << n << "$'\n'";
@@ -89,9 +90,12 @@ void invoke(char *workerName, int n, int numPairs, int ****in_topRightMatrices, 
 			}
 		}
 		// propagate command line argument
-		std::stringstream args("~/CS401/wq/worker");
+		std::stringstream args;
+		args << "~/CS401/wq/worker" << " ";
 		for (int i = 1; i < ARGC; i++)
 			args << ARGV[i] << " ";
+		printf("ARGC: %d\n", ARGC);
+		printf("args: %s\n", args.str().c_str());
 
 		// invoke
 		execl("/usr/bin/ssh", "ssh", workerName, args.str().c_str(), "<<<", ss.str().c_str(), (char *)0);
@@ -245,15 +249,19 @@ input readInput()
 		for (int i = 0; i < in.n; i++)
 			in.data[i] = (int *)malloc(sizeof(int) * in.n);
 
+		std::string substr;
 		for (int row = 0; row < in.n; row++)
 		{
 			std::getline(file, line);
 			std::stringstream ss(line);
 			for (int col = 0; col < in.n; col++)
 			{
-				std::string substr;
 				std::getline(ss, substr, ',');
 				in.data[row][col] = std::stoi(substr);
+			}
+			if (VERBOSE){
+				double percent = ((double)row / in.n) * 100;
+				printf("%f%%\n", percent);
 			}
 		}
 		file.close();
@@ -279,8 +287,10 @@ int isNaturalNumber(char *s)
 	return 1;
 }
 
-void initArgument()
+void initArgument(int argc, char** argv)
 {
+	ARGC = argc;
+	ARGV = argv;
 	BLOCK_SIZE = 16;
 	NUM_WORKER = 4;
 	WQ_MAX = 256;
@@ -321,7 +331,8 @@ int parseArgument(int argc, char **argv)
 			printf("Use --worker-names <comma separated string> to specify worker names (must match names in your ssh config file). Defaults to 'lab0,lab1,lab2,lab3'.");
 			printf("Use --wq-max <number> to specify number of slots in work queue. Defaults to 256.\n");
 			printf("Use --max-char-per-entry <number> to specify number of maximum character per entry (i.e 24 takes 2 characters, 100 takes 3 characters). Defaults to 2.\n");
-			printf("Use --max-mat-dim <number> to specify number of maximum matrix size in terms of number of emtries. Defaults to 128.\n");
+			printf("Use --max-mat-dim <number> to specify number of maximum matrix size in terms of number of entries. Defaults to 128.\n");
+			printf("Use --wq-max <number> to specify work queue size.");
 			printf("Use -t to enable time time measuring.\n");
 			printf("Use -v to run program in verbose mode.\n");
 			return 0;

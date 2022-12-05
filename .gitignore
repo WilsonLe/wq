@@ -1,5 +1,5 @@
 producer
 worker
 generate_input
-input.txt
+input*.txt
 output.txt

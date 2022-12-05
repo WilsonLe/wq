@@ -20,7 +20,7 @@ double time()
 int main(int argc, char **argv)
 {
 	// handling argument
-	initArgument();
+	initArgument(argc, argv);
 
 	int rc = parseArgument(argc, argv);
 	if (rc == 1 || rc == 0)
@@ -136,7 +136,6 @@ int main(int argc, char **argv)
 		int numBlocks = (in.n / blockSize) - i - 1; // ignore the i==j blocks
 		if (numBlocks == 0)
 			continue;
-		// printf("numBlocks: %d\n", numBlocks);
 		int ***topRightBlocks = (int ***)malloc(sizeof(int **) * numBlocks);
 		for (int i = 0; i < numBlocks; i++)
 		{
@@ -162,7 +161,7 @@ int main(int argc, char **argv)
 		data->numPairs = numBlocks;
 		data->topRights = topRightBlocks;
 		data->bottomLefts = bottomLeftBlocks;
-		// printf("producing numBlocks: %d\n", data->numPairs);
+		printf("i: %d\n", i);
 		// for (int i = 0; i < numBlocks; i++)
 		// {
 		// 	printMatrix(data->topRights[i], data->n);
@@ -201,13 +200,16 @@ int main(int argc, char **argv)
 	}
 
 	// join threads
+	
 	for (int i = 0; i < numThreads; i++)
 	{
 		pthread_cond_signal(queue.fill);
 		pthread_join(tid[i], NULL);
+		printf("i: %d\n", i);
 	}
 
 	printMatrix(in.data, in.n);
+
 	if (TIME)
 		printf("%f\n", time());
 

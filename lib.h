@@ -60,7 +60,7 @@ void consume(queue_attr *queue, char *workerName, int ***data_ptr, int data_len)
 
 void produce(queue_attr *queue, queue_d *work);
 
-void initArgument(void);
+void initArgument(int argc, char** argv);
 
 int parseArgument(int argc, char **argv);
 
