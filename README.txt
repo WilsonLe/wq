@@ -85,6 +85,4 @@ Then, we want to run the producer. There are configs to running the producer tha
 
 ## Caveats
  
-There will be some caveats running this program: if you are met with an ssh timeout error, chances are the worker threads are invoking ssh too frequent in a short amount of time, consider increasing block size relative to input matrix size, or increase number of worker (this requires setting up more ssh config).
-
-As of the time of submission, there exist a race condition bug (that I have managed to narrow down to the work queue) that I have not managed to fix.
+There will be some caveats running this program: if you are encounter a ssh timeout error, chances are the worker threads are invoking ssh too frequent in a short amount of time, consider increasing block size relative to input matrix size, or increase number of worker (this requires setting up more ssh config).
